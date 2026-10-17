@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web Menuju Ambis — Personal Dashboard Angken</title>
+  <meta name="description" content="Personal dashboard Angken: manajemen tugas, jadwal kuliah, catatan cepat, cuaca lokasi real-time, dan kutipan harian." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Ornamen latar belakang (dekorasi saja) -->
+  <div class="backdrop" aria-hidden="true">
+    <span class="orb orb--1"></span>
+    <span class="orb orb--2"></span>
+    <span class="orb orb--3"></span>
+  </div>
+
+  <!-- ============================ TOPBAR ============================ -->
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <div class="brand">
+        <span class="brand__logo">🎓</span>
+        <span class="brand__text">
+          <strong class="brand__title">Web Menuju Ambis</strong>
+          <small class="brand__subtitle">Personal Dashboard Angken</small>
+        </span>
+      </div>
+
+      <div class="topbar__actions">
+        <button type="button" id="btn-import" class="btn btn--ghost" title="Pulihkan data dari file backup JSON">📥 Impor</button>
+        <button type="button" id="btn-export" class="btn btn--ghost" title="Simpan semua data ke file JSON">📤 Ekspor</button>
+        <button type="button" id="btn-theme" class="btn btn--icon" title="Ganti tema terang/gelap" aria-label="Ganti tema">🌙</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- ============================ HERO ============================ -->
+    <section class="card hero" aria-label="Sapaan dan kutipan harian">
+      <div class="hero__greeting">
+        <p class="hero__eyebrow" id="today-label">Memuat tanggal…</p>
+        <h1 class="hero__title">
+          <span id="greeting">Halo</span>,
+          <button type="button" id="btn-name" class="name-btn" title="Klik untuk mengubah nama">
+            <span id="user-name">Angken Cantik</span> <span aria-hidden="true">✏️</span>
+          </button>
+          <span aria-hidden="true">👋</span>
+        </h1>
+        <p class="hero__clock">
+          <span id="clock">--:--:--</span>
+          <span aria-hidden="true">•</span>
+          <span id="clock-zone">WIB</span>
+        </p>
+        <p class="hero__hint">Semua data tersimpan otomatis di browser kamu (<code>localStorage</code>).</p>
+      </div>
+
+      <div class="hero__quote" id="quote-card" aria-live="polite">
+        <div class="quote__head">
+          <span class="quote__badge">💡 Inspirasi Harian</span>
+          <button type="button" id="btn-quote" class="icon-btn" title="Ambil kutipan baru">🔄</button>
+        </div>
+        <blockquote class="quote__text" id="quote-text">Memuat kutipan…</blockquote>
+        <p class="quote__author" id="quote-author">—</p>
+      </div>
+    </section>
+
+    <!-- ==================== WIDGET CUACA + STATISTIK ==================== -->
+    <section class="grid grid--widgets">
+      <article class="card weather" id="weather-card" aria-live="polite">
+        <div class="card__head">
+          <h2 class="card__title">🌤️ Cuaca Kampus</h2>
+          <button type="button" id="btn-weather" class="icon-btn" title="Perbarui data cuaca">🔄</button>
+        </div>
+
+        <div class="weather__body" id="weather-body">
+          <div class="weather__icon" id="weather-icon">⏳</div>
+          <div class="weather__main">
+            <p class="weather__temp"><span id="weather-temp">--</span><small>°C</small></p>
+            <p class="weather__desc" id="weather-desc">Mengambil data Open-Meteo…</p>
+          </div>
+        </div>
+
+        <ul class="weather__facts">
+          <li><span>Lokasi</span><strong id="weather-place">Lampung, Indonesia</strong></li>
+          <li><span>Angin</span><strong id="weather-wind">-- km/jam</strong></li>
+          <li><span>Diperbarui</span><strong id="weather-updated">--</strong></li>
+        </ul>
+      </article>
+
+      <article class="card stats">
+        <div class="card__head">
+          <h2 class="card__title">📊 Ringkasan Hari Ini</h2>
+          <span class="card__hint" id="stats-hint">—</span>
+        </div>
+
+        <div class="stats__grid">
+          <div class="stat stat--total">
+            <span class="stat__value" id="stat-total">0</span>
+            <span class="stat__label">Total Tugas</span>
+          </div>
+          <div class="stat stat--pending">
+            <span class="stat__value" id="stat-pending">0</span>
+            <span class="stat__label">Belum Selesai</span>
+          </div>
+          <div class="stat stat--done">
+            <span class="stat__value" id="stat-done">0</span>
+            <span class="stat__label">Selesai</span>
+          </div>
+          <div class="stat stat--overdue">
+            <span class="stat__value" id="stat-overdue">0</span>
+            <span class="stat__label">Lewat Deadline</span>
+          </div>
+        </div>
+
+        <div class="progress" title="Progres penyelesaian tugas">
+          <div class="progress__bar" id="progress-bar" style="width: 0%"></div>
+        </div>
+        <p class="progress__label">Progres belajar: <strong id="progress-text">0%</strong> tugas selesai</p>
+      </article>
+    </section>
+
+    <!-- ==================== TUGAS + JADWAL KULIAH ==================== -->
+    <section class="grid grid--main">
+      <article class="card panel">
+        <div class="card__head">
+          <h2 class="card__title">✅ Daftar Tugas</h2>
+          <span class="card__hint" id="task-count">0 tugas</span>
+        </div>
+
+        <div class="toolbar">
+          <input type="search" id="task-search" class="input input--search" placeholder="Cari tugas / mata kuliah…" aria-label="Cari tugas" />
+          <select id="task-status" class="input" aria-label="Filter status tugas">
+            <option value="all">Semua status</option>
+            <option value="active">Belum selesai</option>
+            <option value="done">Selesai</option>
+          </select>
+          <select id="task-sort" class="input" aria-label="Urutkan tugas">
+            <option value="due">Deadline terdekat</option>
+            <option value="priority">Prioritas tertinggi</option>
+            <option value="created">Terbaru dibuat</option>
+            <option value="title">Judul A-Z</option>
+          </select>
+          <button type="button" id="btn-add-task" class="btn btn--primary">+ Tambah Tugas</button>
+        </div>
+
+        <ul class="task-list" id="task-list"></ul>
+        <p class="empty" id="task-empty" hidden>Belum ada tugas yang cocok. Tambahkan tugas baru untuk mulai produktif 🚀</p>
+      </article>
+
+      <article class="card panel">
+        <div class="card__head">
+          <h2 class="card__title">🗓️ Jadwal Kuliah</h2>
+          <button type="button" id="btn-add-schedule" class="btn btn--primary btn--sm">+ Tambah</button>
+        </div>
+        <div class="schedule" id="schedule-list"></div>
+        <p class="empty" id="schedule-empty" hidden>Jadwal masih kosong. Tambahkan mata kuliah semester ini 📚</p>
+      </article>
+    </section>
+
+    <!-- ============================ CATATAN ============================ -->
+    <section class="card panel">
+      <div class="card__head">
+        <h2 class="card__title">📝 Catatan Cepat</h2>
+        <button type="button" id="btn-add-note" class="btn btn--primary btn--sm">+ Tambah Catatan</button>
+      </div>
+      <div class="note-grid" id="note-list"></div>
+      <p class="empty" id="note-empty" hidden>Belum ada catatan. Simpan ide, rumus, atau reminder di sini 🗒️</p>
+    </section>
+  </main>
+
+  <!-- ============================ FOOTER ============================ -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p>
+        Dibuat untuk <strong>Tugas Praktikum</strong> — vanilla JavaScript (ES6+) + <code>localStorage</code> +
+        <code>fetch()</code> API publik (Open-Meteo &amp; DummyJSON).
+      </p>
+      <button type="button" id="btn-reset" class="btn btn--danger btn--sm">🗑️ Reset Semua Data</button>
+    </div>
+  </footer>
+
+  <!-- ======================= MODAL: FORM TUGAS ======================= -->
+  <dialog id="task-dialog" class="modal">
+    <form id="task-form" class="modal__form" novalidate>
+      <header class="modal__head">
+        <h2 id="task-dialog-title">Tambah Tugas</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Tutup">✕</button>
+      </header>
+
+      <div class="field">
+        <label for="task-title">Judul tugas <span class="req">*</span></label>
+        <input id="task-title" name="title" type="text" maxlength="120" required placeholder="Contoh: Laporan Praktikum Jaringan" />
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="task-course">Mata kuliah</label>
+          <input id="task-course" name="course" type="text" maxlength="60" placeholder="Jaringan Komputer" />
+        </div>
+        <div class="field">
+          <label for="task-priority">Prioritas</label>
+          <select id="task-priority" name="priority">
+            <option value="tinggi">Tinggi</option>
+            <option value="sedang" selected>Sedang</option>
+            <option value="rendah">Rendah</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="task-due">Deadline</label>
+        <input id="task-due" name="dueDate" type="date" />
+      </div>
+
+      <footer class="modal__footer">
+        <button type="button" class="btn btn--ghost" data-close>Batal</button>
+        <button type="submit" class="btn btn--primary">Simpan Tugas</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- ====================== MODAL: FORM JADWAL ====================== -->
+  <dialog id="schedule-dialog" class="modal">
+    <form id="schedule-form" class="modal__form" novalidate>
+      <header class="modal__head">
+        <h2 id="schedule-dialog-title">Tambah Jadwal Kuliah</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Tutup">✕</button>
+      </header>
+
+      <div class="field">
+        <label for="schedule-course">Mata kuliah <span class="req">*</span></label>
+        <input id="schedule-course" name="course" type="text" maxlength="80" required placeholder="Praktikum Jaringan Komputer" />
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="schedule-day">Hari</label>
+          <select id="schedule-day" name="day"></select>
+        </div>
+        <div class="field">
+          <label for="schedule-room">Ruang</label>
+          <input id="schedule-room" name="room" type="text" maxlength="40" placeholder="Lab Jaringan" />
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="schedule-start">Jam mulai</label>
+          <input id="schedule-start" name="start" type="time" required />
+        </div>
+        <div class="field">
+          <label for="schedule-end">Jam selesai</label>
+          <input id="schedule-end" name="end" type="time" required />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="schedule-lecturer">Dosen / asisten</label>
+        <input id="schedule-lecturer" name="lecturer" type="text" maxlength="80" placeholder="Nama dosen pengampu" />
+      </div>
+
+      <footer class="modal__footer">
+        <button type="button" class="btn btn--ghost" data-close>Batal</button>
+        <button type="submit" class="btn btn--primary">Simpan Jadwal</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- ====================== MODAL: FORM CATATAN ====================== -->
+  <dialog id="note-dialog" class="modal">
+    <form id="note-form" class="modal__form" novalidate>
+      <header class="modal__head">
+        <h2 id="note-dialog-title">Tambah Catatan</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Tutup">✕</button>
+      </header>
+
+      <div class="field">
+        <label for="note-title">Judul catatan <span class="req">*</span></label>
+        <input id="note-title" name="title" type="text" maxlength="100" required placeholder="Rumus subnetting / ide project" />
+      </div>
+
+      <div class="field">
+        <label for="note-body">Isi catatan</label>
+        <textarea id="note-body" name="body" rows="5" maxlength="1000" placeholder="Tulis isi catatan di sini…"></textarea>
+      </div>
+
+      <footer class="modal__footer">
+        <button type="button" class="btn btn--ghost" data-close>Batal</button>
+        <button type="submit" class="btn btn--primary">Simpan Catatan</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="false"></div>
+  <input type="file" id="import-input" accept="application/json,.json" hidden />
+
+  <noscript>
+    <p class="noscript">Aplikasi ini membutuhkan JavaScript. Aktifkan JavaScript di browser kamu untuk memakai dashboard.</p>
+  </noscript>
+
+  <!-- Urutan script penting: utils → models → storage → api → app -->
+  <script src="js/utils.js" defer></script>
+  <script src="js/models.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>
